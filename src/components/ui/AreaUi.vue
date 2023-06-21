@@ -1,8 +1,6 @@
 <script lang="ts">
 import VueResizable from '@/components/Resizable.vue'
 
-import { Area } from '@/models/screens'
-
 export default {
   components: {
     VueResizable
@@ -17,20 +15,32 @@ export default {
       type: Object,
       required: true
     },
+    minWidth: {
+      default: 16,
+      type: Number
+    },
+    maxWidth: {
+      default: 512,
+      type: Number
+    },    
+    minHeight: {
+      default: 16,
+      type: Number
+    },
+    maxHeight: {
+      default: 512,
+      type: Number
+    },
     active: Boolean
   },
 
   emits: ['update'],
   data() {
     const area_rs = {
-      width: this.area?.w,
-      height: this.area?.h,
+      width: this.area?.w || 16,
+      height: this.area?.h || 16,
       left: this.area?.x,
       top: this.area?.y,
-      maxWidth: 512,
-      maxHeight: 512,
-      minWidth: 10,
-      minHeight: 10,
       fitParent: true
     }
     return {
@@ -57,31 +67,39 @@ export default {
 </script>
 
 <template>
-  <VueResizable v-bind="area_rs" @resize:end="eHandler" @drag:end="eHandler" :active="ractive">
+  <VueResizable 
+  
+  v-bind="area_rs" @resize:end="eHandler" @drag:end="eHandler" 
+  :active="ractive"
+  :min-height="minHeight"
+  :max-height="maxHeight"
+  :max-width="maxWidth"
+  :min-width="minWidth"
+  :drag-selector="'.resizable-content'"
+  >
     <div class="resizable-content" :class="{ active: active }">
       <slot></slot>
     </div>
   </VueResizable>
 </template>
 <style lang="scss" scoped>
-.fenrir-ui-browser {
-  position: relative;
-}
+
 .resizable-content {
   height: 100%;
   width: 100%;
-  position: relative;
+  //position: relative;
+  cursor: pointer;
   &.active {
-    &::before {
-      content: ' ';
+    //&::before {
+      //content: ' ';
       //background-color: aqua;
       //opacity: 0.2;
       border: 1px solid #555;
       width: 100%;
       height: 100%;
       display: block;
-      position: absolute;
-    }
+      //position: absolute;
+    //}
   }
 }
 </style>

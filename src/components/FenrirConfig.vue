@@ -1,7 +1,7 @@
 <script lang="ts">
 import { mapStores } from 'pinia'
 
-import AreaUI from '@/components/ui/Area.vue'
+import AreaUI from '@/components/ui/AreaUi.vue'
 import ItemColor from '@/components/ui/ItemColor.vue'
 import FontEditor from '@/components/ui/FontEditor.vue'
 import BackgroundSettings from '@/components/ui/BackgroundSetting.vue'
@@ -37,9 +37,6 @@ export default {
       this.browserFgX -= this.config.screens.gamelist.foreground.x_inc
       this.browserFgY -= this.config.screens.gamelist.foreground.y_inc
     }, 16)
-
-    this.browserBackgroundImage = this.themeStore.backgroundImageUrl
-    this.browserForegroundImage = this.themeStore.foregroundImageUrl
 
     this.themeStore.$subscribe(() => {
       this.udpateCSS()
@@ -81,19 +78,6 @@ export default {
       })
 
       SetCssVar('--foreground-image', `url(${this.themeStore.foregroundImageUrl})`)
-    },
-
-    async browserBackgroundDropped(blob: Blob) {
-      const blobUrl = URL.createObjectURL(blob)
-      this.browserBackgroundImage = blobUrl
-
-      this.themeStore.updateBackground(blob)
-    },
-    async browserForegroundDropped(blob: Blob) {
-      const blobUrl = URL.createObjectURL(blob)
-      this.browserForegroundImage = blobUrl
-
-      this.themeStore.updateForeground(blob)
     },
 
     resetBackgroundAnimation() {
@@ -186,8 +170,6 @@ export default {
     //console.log(this.themeStore)
     return {
       intervalAnim: 0,
-      browserBackgroundImage: '',
-      browserForegroundImage: '',
       //config: this.themeStore.config,
       browserBgX: 0,
       browserBgY: 0,
@@ -206,7 +188,7 @@ export default {
     <div class="column is-one-fifth has-background-dark">
       <UploadContent
         class="upload-area"
-        @files-dropped="browserBackgroundDropped"
+        @files-dropped="themeStore.updateBackground"
         buttonlabel="Upload background"
       >
         <div class="is-size-7">File must be 512x512 with less than 16 colors</div>
@@ -214,7 +196,7 @@ export default {
 
       <UploadContent
         class="upload-area"
-        @files-dropped="browserForegroundDropped"
+        @files-dropped="themeStore.updateForeground"
         buttonlabel="Upload foreground"
       >
         <div class="is-size-7">File must be 512x512 with less than 16 colors</div>
@@ -225,10 +207,17 @@ export default {
         v-model:model-value="themeStore.config.screens.gamelist.backgound"
         label="Background scrolling"
       >
-        <div v-if="themeStore.backgroundStats.tilesCount > 0x400 || themeStore.backgroundStats.paletteSize > 16" class="notification is-danger">
+        <div
+          v-if="
+            themeStore.backgroundStats.tilesCount > 0x400 ||
+            themeStore.backgroundStats.paletteSize > 16
+          "
+          class="notification is-danger"
+        >
           Primar lorem ipsum dolor sit amet, consectetur adipiscing elit lorem ipsum dolor.
-          <strong>{{ themeStore.backgroundStats.tilesCount }}</strong>, <strong>{{themeStore.backgroundStats.paletteSize}}</strong>.
-          Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum
+          <strong>{{ themeStore.backgroundStats.tilesCount }}</strong
+          >, <strong>{{ themeStore.backgroundStats.paletteSize }}</strong
+          >. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum
           <a>felis venenatis</a> efficitur.
         </div>
       </BackgroundSettings>
@@ -237,13 +226,27 @@ export default {
         v-model:model-value="themeStore.config.screens.gamelist.foreground"
         label="Foreground scrolling"
       >
-        <div v-if="themeStore.foregroundStats.tilesCount > 0x400 || themeStore.foregroundStats.paletteSize > 16" class="notification is-danger">
+        <div
+          v-if="
+            themeStore.foregroundStats.tilesCount > 0x400 ||
+            themeStore.foregroundStats.paletteSize > 16
+          "
+          class="notification is-danger"
+        >
           Primar lorem ipsum dolor sit amet, consectetur adipiscing elit lorem ipsum dolor.
           <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla.
           Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum
           <a>felis venenatis</a> efficitur.
         </div>
       </BackgroundSettings>
+
+      <UploadContent
+        class="upload-area"
+        @files-dropped="themeStore.updateIcons"
+        buttonlabel="Upload SD/WIFI icon"
+      >
+        <div class="is-size-7">File must be 16x{{ 16 * 4 }}</div>
+      </UploadContent>
 
       <div class="field">
         <div class="control">
@@ -262,20 +265,28 @@ export default {
         <div
           class="fenrir-config-user-area my-0 mx-auto"
           :style="{
-            backgroundImage: `url(${browserBackgroundImage})`,
-            backgroundPositionX: browserBackgroundPosition.x,
-            backgroundPositionY: browserBackgroundPosition.y,
             transform: `scale(${scale / 100})`
           }"
         >
           <div
             :style="{
-              backgroundImage: `url(${browserForegroundImage})`,
+              pointerEvents: 'none',
+              backgroundImage: `url(${themeStore.backgroundImageUrl})`,
+              backgroundPositionX: browserBackgroundPosition.x,
+              backgroundPositionY: browserBackgroundPosition.y
+            }"
+            class="fenrir-config-foreground"
+          ></div>
+          <div
+            :style="{
+              pointerEvents: 'none',
+              backgroundImage: `url(${themeStore.foregroundImageUrl})`,
               backgroundPositionX: browserForegroundPosition.x,
               backgroundPositionY: browserForegroundPosition.y
             }"
             class="fenrir-config-foreground"
           ></div>
+
           <div class="fenrir-config-user-area-img-preview"></div>
           <div class="fenrir-config-user-area-control">
             <AreaUI
@@ -294,6 +305,22 @@ export default {
               @update="themeStore.updateAreaGamelistCover"
               :area="config.screens.gamelist.cover"
               ><div class="cover-area"></div>
+            </AreaUI>
+
+            <AreaUI
+              :active="displayAreaGuide"
+              :fixed-size="true"
+              @update="themeStore.updateAreaGamelistDeviceIcon"
+              :area="config.screens.gamelist.deviceIcon"
+              :max-height="16"
+              :min-height="16"
+              :max-width="16"
+              :min-width="16"
+            >
+              <div
+                :style="{ backgroundImage: `url(${themeStore.iconsImageUrl})` }"
+                class="icon-area"
+              ></div>
             </AreaUI>
           </div>
         </div>
@@ -492,5 +519,9 @@ $screen-map-sz: var(--screen-map-sz, 512px);
 .cover-area {
   background-color: #333;
   height: 100%;
+}
+.icon-area {
+  width: 16px;
+  height: 16px;
 }
 </style>

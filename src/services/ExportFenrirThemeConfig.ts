@@ -11,6 +11,7 @@ export enum THEME_ID {
     VDP2_BG = 0x000000010,
     VDP2_FG = 0x000000011,
     FONT = 0x000000100,
+    ICONS=0x000000101,
     VGM_SN76xxx = 0x000001000,
 };
 
@@ -52,6 +53,11 @@ export function ThemeConfigToBuffer(config: FenrirConfig) {
         buffer.addUint16(c.enabled ? 1 : 0)
     }
 
+    function _DeviceIconSetting(area: Pick<Area, "x" | 'y'>) {               
+        buffer.addUint16(area.x)
+        buffer.addUint16(area.y)
+    }
+
     function _BackgroundSetting(b: BackgroundSetting) {
 
         buffer.addUint32(b.x_inc * F16_1)
@@ -64,6 +70,7 @@ export function ThemeConfigToBuffer(config: FenrirConfig) {
         _BrowserSetting(cfg.screens.gamelist.browser)
         _CoverSetting(cfg.screens.gamelist.cover)
         _BackgroundSetting(cfg.screens.gamelist.backgound)
+        _DeviceIconSetting(cfg.screens.gamelist.deviceIcon)
     }
     _FenrirConfig(config)
 

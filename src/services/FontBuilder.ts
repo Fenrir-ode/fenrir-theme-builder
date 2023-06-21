@@ -39,7 +39,6 @@ export class FontBuilder {
     async loadAllFonts() {
         const ps = fonts.map(async font => {
             return new Promise((resolve, rej) => {
-                console.log(font)
                 const ff = new FontFace(font.name, `url(${font.url})`);
                 ff.load().then((f) => {
                     document.fonts.add(f)
@@ -68,18 +67,10 @@ export class FontBuilder {
     }
 
     _buildFontInfo() {
-        const mt = this.ctx2d.measureText('a')
-        console.log('a', this.ctx2d.measureText('a'))
-        console.log('A', this.ctx2d.measureText('A'))
-        console.log('.', this.ctx2d.measureText('.'))
-        console.log('|', this.ctx2d.measureText('|'))
-
         for (let i = 0; i < 256; i++) {
             const mt = this.ctx2d.measureText(String.fromCharCode(i))
             this.fontInfo[i] = { width: mt.width }
         }
-
-        console.log(this.fontInfo)
     }
 
     drawCharInCanvas() {
@@ -95,8 +86,6 @@ export class FontBuilder {
         this.chars.forEach((c, id) => {
             this.ctx2d.fillText(c, id * this.curFont.width, 0)
         })
-        console.log(this.ctx2d, "draw")
-
 
         this._buildFontInfo()
     }

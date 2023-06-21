@@ -3,6 +3,9 @@ import { useThemeConfigStore } from './store/ThemeConfig';
 
 const store = useThemeConfigStore()
 store.init()
+store.$subscribe(function () {
+  // console.log(arguments)
+})
 
 </script>
 

@@ -61,6 +61,17 @@ export default class ImageTiler {
         }
     }
 
+    async read(url: string) {
+        const u8ar = Uint8Array.from(atob(url), (c) => c.charCodeAt(0))
+        const b = Buffer.from(u8ar)
+        try {
+            return await Jimp.read(b)
+        } catch (e) {
+            console.error(`JIMP Error reading:`, b, url, e)
+            throw e
+        }
+    }
+
     async loadImage(url: string) {
         this.imageUrl = url
         this.palettes = []
@@ -77,8 +88,7 @@ export default class ImageTiler {
 
         const colors: number[] = []
 
-        //const image = await Jimp.read("/workspaces/loader_yaul/assets/aurelie.png")
-        const image: JimpType = await Jimp.read(this.imageUrl)
+        const image: JimpType = await this.read(this.imageUrl)
 
         this.imageW = image.bitmap.width
         this.imageH = image.bitmap.height
@@ -93,9 +103,6 @@ export default class ImageTiler {
         this.palettes.push(...new Set(colors))
         // always add transparent first
         this.palettes.sort((a, b) => a - b)
-
-        console.log(this.palettes)
-
 
         // tiling
         for (let map_y = 0; map_y < vdp_config.map_sz; map_y++) {

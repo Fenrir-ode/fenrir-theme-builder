@@ -130,16 +130,11 @@ export const RGBFunc = {
 
 
 export async function BlobToBase64(blob: Blob) {
-    const imgB64 = await new Promise((resolve, _) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(blob)
-    })
+    const ab = await blob.arrayBuffer()
+    const imgB64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
 
     if (imgB64) {
-        // @ts-ignore
-        const d = imgB64.split(',')
-        return atob(d[1])
+        return imgB64
     }
 
 }

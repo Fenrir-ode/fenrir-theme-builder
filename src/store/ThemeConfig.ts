@@ -5,6 +5,7 @@ import ImageTiler from '@/services/VDP2Tiler'
 import { THEME_ID, ThemeConfigToBuffer, ThemeExport } from '@/services/ExportFenrirThemeConfig'
 import { BlobToBase64, DVBuffer, downloadBuffer } from '@/services/Utils'
 import { fonts, FontBuilder } from '@/services/FontBuilder'
+import IconsExporter from '@/services/Icons'
 
 
 interface BackgroundState {
@@ -19,7 +20,11 @@ export interface State {
     foregroundImage: RemovableRef<string>, /* base 64*/
     font: RemovableRef<typeof fonts[number]['name']>,
     foregroundStats: BackgroundState,
-    backgroundStats: BackgroundState
+    backgroundStats: BackgroundState,
+    icons: RemovableRef<string>, /* base 64*/
+    backgroundImageUrl: string,
+    foregroundImageUrl: string,
+    iconsImageUrl: string,
 }
 
 
@@ -42,6 +47,9 @@ const b64serializer = {
 export const useThemeConfigStore = defineStore('theme', {
     state: (): State => {
         return {
+            //================================================
+            // Saved in local storage
+            //================================================
             config: useStorage<FenrirConfig>('theme-config', fenrirDefaultConfig),
             backgroundImage: useStorage<string>('theme-background', '', undefined, {
                 serializer: b64serializer
@@ -50,7 +58,12 @@ export const useThemeConfigStore = defineStore('theme', {
                 serializer: b64serializer
             }),
             font: useStorage<string>('theme-font', fonts[0].name),
-            // not saved
+            icons: useStorage<string>('theme-icons', '', undefined, {
+                serializer: b64serializer
+            }),
+            //================================================
+            // Not saved
+            //================================================
             foregroundStats: {
                 imageH: 0,
                 imageW: 0,
@@ -62,42 +75,63 @@ export const useThemeConfigStore = defineStore('theme', {
                 imageW: 0,
                 paletteSize: 0,
                 tilesCount: 0
-            }
-
+            },
+            backgroundImageUrl: '',
+            foregroundImageUrl: '',
+            iconsImageUrl: ''
         }
     },
     getters: {
-        backgroundImageUrl(state) {
-            const ii = Uint8Array.from(state.backgroundImage, (c) => c.charCodeAt(0))
-            const blobUrl = URL.createObjectURL(new Blob([ii]))
-            return blobUrl
-        },
-        foregroundImageUrl(state) {
-            const ii = Uint8Array.from(state.foregroundImage, (c) => c.charCodeAt(0))
-            const blobUrl = URL.createObjectURL(new Blob([ii]))
-            return blobUrl
-        },
     },
 
     actions: {
         async init() {
-            this.loadBackground()
-            this.loadForeground()
+            await this.loadBackground()
+            await this.loadForeground()
+            await this.loadDeviceIcons()
+
+            const initBlob = {
+                backgroundImage: 'backgroundImageUrl',
+                foregroundImage: 'foregroundImageUrl',
+                icons: 'iconsImageUrl',
+            }
+
+            Object.entries(initBlob).forEach(([blob, url]) => {
+                // @ts-ignore
+                const self: Record<string, string> = this;
+                const ii = Uint8Array.from(atob(self[blob]), (c) => c.charCodeAt(0))
+                self[url] = URL.createObjectURL(new Blob([ii]))
+            })
+
         },
 
+        //================================================
         async loadBackground() {
             const tiler = new ImageTiler()
-            await tiler.loadImage(this.backgroundImageUrl)
+
+            await tiler.loadImage(this.backgroundImage)
+
             this.backgroundStats = tiler.getStats()
         },
         async loadForeground() {
             const tiler = new ImageTiler()
-            await tiler.loadImage(this.foregroundImageUrl)
+            await tiler.loadImage(this.foregroundImage)
+
             this.foregroundStats = tiler.getStats()
         },
+        async loadDeviceIcons() {
+            const icons = new IconsExporter()
+            if (this.iconsImageUrl) {
+                await icons.loadImage(this.iconsImageUrl)
+
+            }
+        },
+
+        //================================================
         async updateBackground(blob: Blob) {
             const b64 = await BlobToBase64(blob)
             if (b64) {
+                this.backgroundImageUrl = URL.createObjectURL(blob)
                 this.backgroundImage = b64
             }
 
@@ -106,11 +140,20 @@ export const useThemeConfigStore = defineStore('theme', {
         async updateForeground(blob: Blob) {
             const b64 = await BlobToBase64(blob)
             if (b64) {
+                this.foregroundImageUrl = URL.createObjectURL(blob)
                 this.foregroundImage = b64
             }
 
             this.loadForeground()
         },
+        async updateIcons(blob: Blob) {
+            const b64 = await BlobToBase64(blob)
+            if (b64) {
+                this.iconsImageUrl = URL.createObjectURL(blob)
+                this.icons = b64
+            }
+        },
+        //================================================
         async initFonts(canvas: HTMLCanvasElement) {
             context.fontBuilder = new FontBuilder(canvas);
             context.fontCanvas = canvas
@@ -121,9 +164,9 @@ export const useThemeConfigStore = defineStore('theme', {
             context.fontBuilder.drawCharInCanvas()
         },
         async updateFont(font: string) {
-            console.log('updateFont')
             this.font = font
         },
+        //================================================
         updateGamelistFocusColors(c: any) {
             Object.assign(this.config.screens.gamelist.browser.focused_color, c)
         },
@@ -136,12 +179,30 @@ export const useThemeConfigStore = defineStore('theme', {
         updateAreaGamelistCover(c: any) {
             Object.assign(this.config.screens.gamelist.cover, c)
         },
+        updateAreaGamelistDeviceIcon(c: any) {
+            Object.assign(this.config.screens.gamelist.deviceIcon, c)
+        },
+        //================================================
         async buildTheme() {
             const bgTiler = new ImageTiler()
-            await bgTiler.loadImage(this.backgroundImageUrl)
+            try {
+                await bgTiler.loadImage(this.backgroundImage)
+            } catch (e) {
+                console.error(e, 'error with backgroundImage')
+                throw e
+            }
 
             const fgTiler = new ImageTiler()
-            await fgTiler.loadImage(this.foregroundImageUrl)
+            try {
+                await fgTiler.loadImage(this.foregroundImage)
+            } catch (e) {
+                console.error(e, 'error with foregroundImage')
+                throw e
+            }
+
+            const icons = new IconsExporter()
+            await icons.loadImage(this.iconsImageUrl)
+            const iconBinaries = await icons.build()
 
             const vdpbg = await bgTiler.build()
             const vdpfg = await fgTiler.build()
@@ -152,13 +213,16 @@ export const useThemeConfigStore = defineStore('theme', {
             expt.addRessource(THEME_ID.VDP2_FG, vdpfg)
             expt.addRessource(THEME_ID.THEME_CONFIG_V0, th)
 
+            if (iconBinaries)
+                expt.addRessource(THEME_ID.ICONS, iconBinaries)
+
+
             //
             if (context.fontBuilder) {
                 context.fontBuilder.setFont(this.font)
                 context.fontBuilder.drawCharInCanvas()
 
                 const fontBuffer = context.fontBuilder.buildFont()
-                console.log(fontBuffer)
                 expt.addRessource(THEME_ID.FONT, fontBuffer)
             }
 

@@ -45,6 +45,10 @@ export interface FenrirConfig {
         gamelist: {
             browser: BrowserSetting,
             cover: CoverSetting,
+            deviceIcon: {
+                x: number
+                y: number
+            },
             backgound: BackgroundSetting,
             foreground: BackgroundSetting,
         }
@@ -69,6 +73,10 @@ export const fenrirDefaultConfig = (() => {
                     w: 128,
                     h: 47,
                     enabled: true
+                },
+                deviceIcon: {
+                    x: 10,
+                    y: 73
                 },
                 browser: {
                     focused_color: {

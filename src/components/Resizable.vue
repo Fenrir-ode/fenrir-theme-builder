@@ -411,6 +411,7 @@ export default {
 <style scoped>
 .resizable-component {
   position: absolute;
+  z-index: 65536;
 }
 
 .resizable-component > .resizable-r {
