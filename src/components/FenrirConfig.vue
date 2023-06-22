@@ -451,7 +451,7 @@ $screen-map-sz: var(--screen-map-sz, 512px);
     calc(($screen-map-sz - $screen-h) * 0.5)
   );
 
-  border: 1px solid #555;
+  outline: 1px solid #555;
 
   width: $screen-w;
   height: $screen-h;
