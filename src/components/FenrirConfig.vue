@@ -93,6 +93,17 @@ export default {
 
     async updateFonts({ font, canvas }: { font: string; canvas: HTMLCanvasElement }) {
       await this.themeStore.updateFont(font)
+    },
+    importTheme() {
+      // @ts-ignore
+      if (this.$refs.themeImport && this.$refs.themeImport.files) {
+        const reader = new FileReader()
+        reader.onload = (r) => {
+          if (r && r.target) this.themeStore.importTheme(r.target.result)
+        }
+        // @ts-ignore
+        reader.readAsText(this.$refs.themeImport.files[0])
+      }
     }
   },
   computed: {
@@ -179,7 +190,9 @@ export default {
       browserFgY: 0,
       displayAreaGuide: true,
       fontBuffer: null,
-      scale: 100
+      scale: 100,
+      modalImport: false,
+      importData: ''
     }
   }
 }
@@ -358,15 +371,56 @@ export default {
         </div>
 
         <div class="field">
-          <button class="button is-primary" @click="themeStore.buildTheme">
-            <span class="icon">
-              <font-awesome-icon icon="fa-solid fa-bolt" />
-            </span>
-            <span>Build theme</span>
-          </button>
+          <div class="control">
+            <button class="button is-primary" @click="themeStore.buildTheme">
+              <span class="icon">
+                <font-awesome-icon icon="fa-solid fa-bolt" />
+              </span>
+              <span>Build theme</span>
+            </button>
+          </div>
+        </div>
+        <div class="field is-grouped">
+          <div class="control">
+            <button class="button" @click="themeStore.exportTheme">
+              <span class="icon">
+                <font-awesome-icon icon="fa-solid fa-bolt" />
+              </span>
+              <span>Export theme</span>
+            </button>
+          </div>
+
+          <div class="control">
+            <button class="button" @click="modalImport = true">
+              <span class="icon">
+                <font-awesome-icon icon="fa-solid fa-bolt" />
+              </span>
+              <span>Import theme</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+    <Teleport to="body">
+      <div v-if="modalImport" class="modal" :class="{ 'is-active': modalImport }">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <div class="box">
+            <h3>Import a theme</h3>
+            <div class="field">
+              <div class="control">
+                <input ref="themeImport" type="file" @change="importTheme()" />
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
+                <button class="button" @click="modalImport = false">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 <style scoped lang="scss">

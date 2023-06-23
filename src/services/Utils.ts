@@ -12,6 +12,16 @@ export function downloadBuffer(buffer: Buffer, name: string = "file.dat") {
     anchor.click()
 }
 
+export function downloadFile(content:string, name: string = "file.dat") {
+    const blob = new Blob([content])
+    const anchor = document.createElement('a')
+    anchor.href = URL.createObjectURL(blob)
+    anchor.download = name
+    document.body.appendChild(anchor)
+    anchor.click()
+}
+
+
 export function saveToLocalStorage(key: string, data: any) {
     localStorage.setItem(key, btoa(data))
 }

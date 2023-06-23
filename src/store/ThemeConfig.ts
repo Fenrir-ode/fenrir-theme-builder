@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { useStorage, type RemovableRef } from '@vueuse/core'
 import ImageTiler from '@/services/VDP2Tiler'
 import { THEME_ID, ThemeConfigToBuffer, ThemeExport } from '@/services/ExportFenrirThemeConfig'
-import { BlobToBase64, DVBuffer, downloadBuffer } from '@/services/Utils'
+import { BlobToBase64, DVBuffer, downloadBuffer, downloadFile } from '@/services/Utils'
 import { fonts, FontBuilder } from '@/services/FontBuilder'
 import IconsExporter from '@/services/Icons'
 
@@ -182,6 +182,47 @@ export const useThemeConfigStore = defineStore('theme', {
         updateAreaGamelistDeviceIcon(c: any) {
             Object.assign(this.config.screens.gamelist.deviceIcon, c)
         },
+
+
+        //================================================
+        exportTheme() {
+            const toSave = [
+                'theme-config',
+                'theme-background',
+                'theme-foreground',
+                'theme-font',
+                'theme-icons'
+            ]
+
+            const json: any = {}
+
+            toSave.forEach(k => {
+                // @ts-ignore
+                json[k] = localStorage.getItem(k);
+            })
+
+            downloadFile(JSON.stringify(json), 'theme.json')
+        },
+
+        importTheme(content: string) {
+            const state = JSON.parse(content)
+            const toSave = {
+                'theme-config': (d: string) => { this.config = JSON.parse(d) },
+                'theme-background': (d: string) => { this.backgroundImage = atob(d) },
+                'theme-foreground': (d: string) => { this.foregroundImage = atob(d) },
+                'theme-font': (d: string) => { this.font = d },
+                'theme-icons': (d: string) => { this.icons = d },
+            }
+            console.log(state)
+
+            Object.entries(toSave).forEach(([k, func]) => {
+                func(state[k])
+            })
+
+            this.init()
+        },
+
+
         //================================================
         async buildTheme() {
             const bgTiler = new ImageTiler()
