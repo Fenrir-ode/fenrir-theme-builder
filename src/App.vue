@@ -11,14 +11,17 @@ store.$subscribe(function () {
 
 <template>
   <main class="container is-fluid p-0 m-0">
-    <nav class="navbar" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-justify-content-center" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <a class="navbar-item" href="https://bulma.io">
+        <a class="navbar-item " href="/">
+          &nbsp; 
           <img src="https://shop.fenrir-ode.fr/img/prestashop-logo-1644698295.jpg" width="28" height="28" />
+          &nbsp; Fenrir theme builder
         </a>
       </div>
-
+<!--
       <div id="navbarBasicExample" class="navbar-menu">
+        
         <div class="navbar-start">
           <a class="navbar-item"> Home </a>
           <router-link class="navbar-item" active-class="is-active" to="/game-list">
@@ -36,7 +39,7 @@ store.$subscribe(function () {
         </div>
 
         
-      </div>
+      </div>-->
     </nav>
     <div class="router-content">
       <router-view></router-view>

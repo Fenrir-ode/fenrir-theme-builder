@@ -6,6 +6,7 @@ import ItemColor from '@/components/ui/ItemColor.vue'
 import FontEditor from '@/components/ui/FontEditor.vue'
 import BackgroundSettings from '@/components/ui/BackgroundSetting.vue'
 import UploadContent from '@/components/image/UploadContent.vue'
+import TilingImageError from '@/components/ui/TilingImageError.vue'
 
 import { useThemeConfigStore } from '@/store/ThemeConfig'
 import type { FenrirConfig } from '@/models/screens'
@@ -24,7 +25,8 @@ export default {
     ItemColor,
     UploadContent,
     FontEditor,
-    BackgroundSettings
+    BackgroundSettings,
+    TilingImageError
   },
   setup() {
     return {}
@@ -187,7 +189,7 @@ export default {
   <div class="fenrir-config columns m-0">
     <div class="column is-one-fifth has-background-dark">
       <UploadContent
-        class="upload-area"
+        class="tile is-parent is-vertical"
         @files-dropped="themeStore.updateBackground"
         buttonlabel="Upload background"
       >
@@ -195,7 +197,7 @@ export default {
       </UploadContent>
 
       <UploadContent
-        class="upload-area"
+        class="tile is-parent is-vertical"
         @files-dropped="themeStore.updateForeground"
         buttonlabel="Upload foreground"
       >
@@ -206,54 +208,36 @@ export default {
         @change="resetBackgroundAnimation"
         v-model:model-value="themeStore.config.screens.gamelist.backgound"
         label="Background scrolling"
+        class="tile is-parent is-vertical"
       >
-        <div
-          v-if="
-            themeStore.backgroundStats.tilesCount > 0x400 ||
-            themeStore.backgroundStats.paletteSize > 16
-          "
-          class="notification is-danger"
-        >
-          Primar lorem ipsum dolor sit amet, consectetur adipiscing elit lorem ipsum dolor.
-          <strong>{{ themeStore.backgroundStats.tilesCount }}</strong
-          >, <strong>{{ themeStore.backgroundStats.paletteSize }}</strong
-          >. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum
-          <a>felis venenatis</a> efficitur.
-        </div>
+        <TilingImageError :stats="themeStore.backgroundStats" />
       </BackgroundSettings>
+
       <BackgroundSettings
+        class="tile is-parent is-vertical"
         @change="resetForegroundAnimation"
         v-model:model-value="themeStore.config.screens.gamelist.foreground"
         label="Foreground scrolling"
       >
-        <div
-          v-if="
-            themeStore.foregroundStats.tilesCount > 0x400 ||
-            themeStore.foregroundStats.paletteSize > 16
-          "
-          class="notification is-danger"
-        >
-          Primar lorem ipsum dolor sit amet, consectetur adipiscing elit lorem ipsum dolor.
-          <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla.
-          Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum
-          <a>felis venenatis</a> efficitur.
-        </div>
+        <TilingImageError :stats="themeStore.foregroundStats" />
       </BackgroundSettings>
 
       <UploadContent
-        class="upload-area"
+        class="tile is-parent is-vertical"
         @files-dropped="themeStore.updateIcons"
         buttonlabel="Upload SD/WIFI icon"
       >
         <div class="is-size-7">File must be 16x{{ 16 * 4 }}</div>
       </UploadContent>
 
-      <div class="field">
-        <div class="control">
-          <label class="label">
-            Display/Move area helpers
-            <input type="checkbox" v-model="displayAreaGuide" />
-          </label>
+      <div class="tile is-parent is-vertical">
+        <div class="field">
+          <div class="control">
+            <label class="label">
+              Display/Move area helpers
+              <input type="checkbox" v-model="displayAreaGuide" />
+            </label>
+          </div>
         </div>
       </div>
 
