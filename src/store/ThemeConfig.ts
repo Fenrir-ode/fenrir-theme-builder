@@ -207,7 +207,9 @@ export const useThemeConfigStore = defineStore('theme', {
         importTheme(content: string) {
             const state = JSON.parse(content)
             const toSave = {
-                'theme-config': (d: string) => { this.config = JSON.parse(d) },
+                'theme-config': (d: string) => { 
+                    Object.assign(this.config, JSON.parse(d))
+                 },
                 'theme-background': (d: string) => { this.backgroundImage = atob(d) },
                 'theme-foreground': (d: string) => { this.foregroundImage = atob(d) },
                 'theme-font': (d: string) => { this.font = d },
@@ -242,7 +244,13 @@ export const useThemeConfigStore = defineStore('theme', {
             }
 
             const icons = new IconsExporter()
-            await icons.loadImage(this.iconsImageUrl)
+            try {
+                await icons.loadImage(this.iconsImageUrl)
+
+            } catch(e) {
+
+                console.error(e, 'error with icons')
+            }
             const iconBinaries = await icons.build()
 
             const vdpbg = await bgTiler.build()
