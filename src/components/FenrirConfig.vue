@@ -257,7 +257,7 @@ export default {
       <span class="is-size-5">Debug</span>
       <textarea rows="10" class="textarea" v-model="configJson"></textarea>
     </div>
-    <div class="column has-background-black">
+    <div class="column has-background-black is-flex is-flex-direction-column">
       <div class="fenrir-config-preview-area">
         <div
           class="fenrir-config-user-area my-0 mx-auto"
@@ -301,6 +301,10 @@ export default {
               :active="displayAreaGuide"
               @update="themeStore.updateAreaGamelistCover"
               :area="config.screens.gamelist.cover"
+              :max-height="96"
+              :min-height="96"
+              :max-width="128"
+              :min-width="128"
               ><div class="cover-area"></div>
             </AreaUI>
 
@@ -322,7 +326,7 @@ export default {
           </div>
         </div>
       </div>
-      <div>
+      <div class="is-absolute">
         <input v-model="scale" type="range" min="10" max="300" />
       </div>
     </div>

@@ -70,6 +70,7 @@ export function ThemeConfigToBuffer(config: FenrirConfig) {
         _BrowserSetting(cfg.screens.gamelist.browser)
         _CoverSetting(cfg.screens.gamelist.cover)
         _BackgroundSetting(cfg.screens.gamelist.backgound)
+        _BackgroundSetting(cfg.screens.gamelist.foreground)
         _DeviceIconSetting(cfg.screens.gamelist.deviceIcon)
     }
     _FenrirConfig(config)

@@ -36,11 +36,15 @@ const context: { fontCanvas?: HTMLCanvasElement, fontBuilder?: FontBuilder } = {
 const b64serializer = {
     read: (v: string) => {
         // base 64 to blob
-        const b = atob(v)
-        return b
+        //const b = atob(v)
+        //return b
+        console.log(v)
+        return v
     },
     write: (b64: string) => {
-        return btoa(b64)
+        //return btoa(b64)
+        console.log(b64)
+        return b64
     }
 }
 
